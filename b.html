@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.5/brython.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.5/brython_stdlib.min.js">
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/python" src="shengji_80score.py"></script>
+  </head>
+  <body onload="brython()">
+    
+      <script type="text/python">
+#import browser
+#browser.alert("Hello Real Python!")
+from browser import document, html
+document <= "Hello"
+document.body.appendChild(document.createTextNode(", I have <= operator "))
+
+def parse_link(text):
+  result = []
+  for line in text.splitlines():
+    if 'http://' in line or 'https://' in line:
+       result += [html.A(line, href='http://aaa')]
+       result += [html.BR()]
+    else:
+       result += [line, html.BR()]
+  return result
+
+from browser import html
+document <= html.A('text', href='http://aaa') <= html.BR()
+for elem in parse_link('aaa\nhttp://a.b.c/bbb\nccc'):
+  document <= elem
+
+
+from browser import ajax
+url = "http://localhost:5000/api/user/login"
+msg = "Position of the International Space Station at {}: {}"
+def complete2(request):
+    data = request.json
+    token = data["token"]
+    document["zone10"].text = token
+def click2(event):
+    headers = { 'Content-Type': 'application/json; charset=utf-8' };
+    data = {
+      'email': 's@gmail.com', 'password':'good'
+    }
+    ajax.post(url, headers=headers, data=data, oncomplete=complete2)
+    document["zone10"].text = "waiting..."
+
+
+url = "http://localhost:5000/api/query"
+
+def complete(request):
+    data = request.json
+    document["zone10"].text = data
+
+def click(event):
+    ajax.get(url, oncomplete=complete, mode="json")
+    document["zone10"].text = "waiting..."
+    
+    #req = ajax.ajax()
+    #req.bind('complete', complete)
+    # pass the arguments in the query string
+    #req.open('GET',url, True)
+    #req.set_header('content-type','application/json')
+    #req.send()
+    #import javascript
+    #from browser import window
+    #window.http_get(url, complete);
+
+document["button10"].bind("click", click)
+
+from browser import bind, html, markdown
+from browser.widgets.dialog import Dialog
+
+d = Dialog("Note", ok_cancel=True, left=0)
+
+style = dict(textAlign="center", paddingBottom="1em")
+d.panel <= html.DIV("" + html.TEXTAREA(cols=40, rows=10))
+
+# Event handler for "Ok" button
+@bind(d.ok_button, "click")
+def ok(ev):
+  note = d.select_one("TEXTAREA").value
+  d.close()
+  mk, scripts = markdown.mark(note)
+  document['zone10'].html = mk
+  for s in scripts:
+  	exec(s)
+
+mystate = '';
+def internal_func(args):
+   global mystate
+   mystate = mystate + args
+   print(f"internal-{mystate}-")
+   from shengji_80score import App
+   App()
+   return mystate
+   
+
+class exports(object):
+  def func(self, args):
+    return internal_func(args)
+    
+from browser import window
+#print(window)
+window.my_obj = internal_func
+#print(window.my_obj)
+      </script>
+    <button onclick="test_brython()">
+     test
+    </button>    
+    <button id="button10">submit</button>
+    <div id="zone10"></div>
+    <div id="test_markdown"></div>
+  </body>
+<script>
+    http_get = (url, callback) => {
+        console.log(url, callback);
+        $.ajax({
+            url : url,
+            type : 'GET',
+            dataType:'json',
+            success : function(data) {              
+               callback(data);
+            },
+            error : function(request,error)
+            {
+                console.log("Request: "+JSON.stringify(request));
+            }
+        });
+      }
+      
+      function test_brython() {
+        a = window.my_obj('abc');
+        console.log(a);
+      }
+      
+</script>
+</html>
